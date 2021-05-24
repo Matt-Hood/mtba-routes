@@ -1,0 +1,15 @@
+mtba_routes.route_controller_generateRoutes:
+  path: '/routes'
+  defaults:
+    _controller: '\Drupal\mtba_routes\Controller\RouteController::generateRoutes'
+    _title: 'Route List'
+  requirements:
+    _permission: 'access content'
+
+mtba_routes.route_controller_generateRoutesSchedule:
+  path: '/routes/{routeIdentifier}'
+  defaults:
+    _controller: '\Drupal\mtba_routes\Controller\RouteController::generateRouteSchedules'
+    _title: 'Route Schedule'
+  requirements:
+    _permission: 'access content'

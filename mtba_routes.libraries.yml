@@ -1,0 +1,8 @@
+mtba-routes:
+  js:
+    js/routes.js: {}
+
+  css:
+    theme:
+      css/routeTable.css: {}
+      css/scheduleTable.css: {}

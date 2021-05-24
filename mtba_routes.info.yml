@@ -1,0 +1,6 @@
+name: 'MTBA Routes'
+type: module
+description: 'This module will provide a list of all MTBA transportation routes along with their corresponding schedules'
+core: 8.x
+core_version_requirement: ^8 || ^9
+package: 'Transportation'

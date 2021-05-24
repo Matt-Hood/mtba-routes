@@ -1,0 +1,5 @@
+services:
+  handle_routes_client:
+    class: Drupal\mtba_routes\FetchRoutes\HandleRoutes
+    arguments:
+      - '@http_client_factory'
