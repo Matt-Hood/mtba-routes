@@ -6,14 +6,15 @@ for generating mtba routes and schedules which were required in the technical as
     - I defined two custom paths one static and one dynamic in my module routing file
     - The file is located in mtba_routes/mtba_routes.routing.yml
 2. Connect to the MBTA routes API to ingest train routes and schedules
-    - I created custom service in my module and registed it with drupal to handle all the required api ingestion requests
+    - I created a custom service in my module and registered it with drupal to handle all the required api ingestion requests
     - The service is located in mtba_routes/src/FetchRoutes/HandleRoutes.php
 3. Display the ingested data on a page in Drupal
-    - Located at custom url "/routes", you will find a list of all routes output in a table grouped by their route types
+    - Located at custom url "/routes", you will find a list of all routes output in a table grouped by their route types with their
+    background color represented as the route color provided by the api
 4. Create a second dynamic page that accepts a route and displays scheduling for that route
     - I completed this task by allowing users to pass the route id into the url at /routes/"route_id"
     - This will dynamically display the schedule for the route id passed into the url
-    - Routes on the /routes page are linked to their schedule page through a dynamic variable in the <a> tag which represents that routes id
+    - Routes on the /routes page are linked to their schedule page through a dynamic variable in the <a> tag which represents that route's id
     which is then passed to /routes/"route_id" once clicked
 
     Below is a list of all route ids for easy access:
