@@ -4,7 +4,9 @@ namespace Drupal\mtba_routes\FetchRoutes;
 
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\Http\ClientFactory;
+use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
 use Drupal\Core\Render\Markup;
+use Drupal\Core\Datetime\DrupalDateTime;
 
 class HandleRoutes
 {
@@ -15,15 +17,22 @@ class HandleRoutes
     protected $client;
 
   /**
+   * @var \Drupal\Core\KeyValueStore\KeyValueFactoryInterface
+   */
+    private $keyValueFactory;
+
+  /**
    * HandleRoutes  constructor.
    *
    * @param $http_client_factory \Drupal\Core\Http\ClientFactory
+   * @param  $keyValueFactory KeyValueFactoryInterface
    */
-    public function __construct(ClientFactory $http_client_factory)
+    public function __construct(ClientFactory $http_client_factory, KeyValueFactoryInterface $keyValueFactory)
     {
         $this->client = $http_client_factory->fromOptions([
           'base_uri' => 'https://api-v3.mbta.com/',
         ]);
+        $this->keyValueFactory = $keyValueFactory;
     }
 
     public function transformData($routeInfoData, $routeInfoColor, $routeID)
@@ -153,6 +162,12 @@ class HandleRoutes
 
     public function fetchSchedules($id)
     {
+        $key = 'schedule_'.$id;
+        $store = $this->keyValueFactory->get('schedule');
+
+        if ($store->has($key)) {
+            return $store->get($key);
+        }
 
         $response = $this->client->get('schedules', [
         'query' => [
@@ -162,9 +177,7 @@ class HandleRoutes
 
         $data = Json::decode($response->getBody());
 
-        $scheduleTimesArrival = [];
-
-        $scheduleTimesDeparture = [];
+        $times = [];
 
         $header = ['Arrival(green) | Departure Times(red) | Arrival = Departure(orange)'];
         $schedules= $data['data'];
@@ -172,34 +185,50 @@ class HandleRoutes
         foreach ($schedules as $schedule) {
             if (!is_null($schedule['attributes']['departure_time']) &&
                 !is_null($schedule['attributes']['arrival_time'])) {
-                $date = date_create($schedule['attributes']['departure_time']);
-                $date = date_format($date, "Y/m/d H:i A");
-                $scheduleTimesDeparture[] = array_map(array($this, 'transformScheduleData'), (array)
-                $schedule['attributes']['arrival_time'], (array) $date);
+                  $date = new DrupalDateTime($schedule['attributes']['arrival_time'], 'UTC');
+                  $formatted_date = \Drupal::service('date.formatter')->format(
+                      $date->getTimestamp(),
+                      'custom',
+                      'F j, Y h:ia'
+                  );
+                $times[] = array_map([
+                  $this,
+                  'transformScheduleData'
+                ], (array)
+                $schedule['attributes']['arrival_time'], (array) $formatted_date);
             }
 
             if (!is_null($schedule['attributes']['arrival_time']) &&
               is_null($schedule['attributes']['departure_time'])) {
-                $date = date_create($schedule['attributes']['arrival_time']);
-                $date = date_format($date, "Y/m/d H:i A");
-                $scheduleTimesArrival[] = array_map(array($this, 'transformScheduleData'), (array) $date, (array)
-                $schedule['attributes']['departure_time']);
+                $date = new DrupalDateTime($schedule['attributes']['arrival_time'], 'UTC');
+                $formatted_date = \Drupal::service('date.formatter')->format(
+                    $date->getTimestamp(),
+                    'custom',
+                    'F j, Y h:ia'
+                );
+
+                $times[] = array_map(array($this, 'transformScheduleData'), (array)
+                $formatted_date, (array) $schedule['attributes']['departure_time']);
             }
 
             if (!is_null($schedule['attributes']['departure_time']) &&
               is_null($schedule['attributes']['arrival_time'])) {
-                $date = date_create($schedule['attributes']['departure_time']);
-                $date = date_format($date, "Y/m/d H:i A");
+                $date = new DrupalDateTime($schedule['attributes']['departure_time'], 'UTC');
+                $formatted_date = \Drupal::service('date.formatter')->format(
+                    $date->getTimestamp(),
+                    'custom',
+                    'F j, Y h:ia'
+                );
 
-                $scheduleTimesDeparture[] = array_map(array($this, 'transformScheduleData'), (array)
-                $schedule['attributes']['arrival_time'], (array) $date);
+                $times[] = array_map(array($this, 'transformScheduleData'), (array)
+                $schedule['attributes']['arrival_time'], (array) $formatted_date);
             }
         }
 
-        return [
+        $result = [
         '#type' => 'table',
         '#header' => $header,
-        '#rows' => array_merge($scheduleTimesArrival, $scheduleTimesDeparture),
+        '#rows' => $times,
         '#empty' => t('Sorry for the inconvenience, there are no exact times available,
         our feature for adding approximate times will be available in the future'),
           '#attached' => [
@@ -208,5 +237,8 @@ class HandleRoutes
             ]
           ]
         ];
+
+        $store->set($key, $result);
+        return $result;
     }
 }

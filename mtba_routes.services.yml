@@ -3,3 +3,4 @@ services:
     class: Drupal\mtba_routes\FetchRoutes\HandleRoutes
     arguments:
       - '@http_client_factory'
+      - '@keyvalue'
