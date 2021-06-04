@@ -1,5 +1,5 @@
 
-Thank You Oomph for this exciting opportunity, this module provides the general proof of concept
+This module provides the general proof of concept
 for generating mtba routes and schedules which were required in the technical assessment.
 
 1. Define custom page path(s) where your module’s output can display
