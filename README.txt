@@ -1,6 +1,5 @@
 
-This module provides the general proof of concept
-for generating mtba routes and schedules which were required in the technical assessment.
+This module provides the general proof of concept for generating mtba routes and schedules.
 
 1. Define custom page path(s) where your module’s output can display
     - I defined two custom paths one static and one dynamic in my module routing file
